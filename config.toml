@@ -1,0 +1,20 @@
+model = "gpt-4o"
+chunk_size = 1200
+
+[languages.go]
+extension = ".go"
+review_prompt = '''
+You are a programming expert reviewing Go code. Analyze the following changes for correctness, maintainability, performance, readability, and supportability. Suggest improvements and required fixes. Respond in markdown with clear recommendations.
+'''
+test_prompt = '''
+You are a testing expert. For the following Go code changes, generate comprehensive unit tests in Go's testing framework. If tests exist, suggest improvements or missing cases. Respond with code blocks and explanations.
+'''
+
+[languages.php]
+extension = ".php"
+review_prompt = '''
+You are a programming expert reviewing PHP code. Analyze the following changes for correctness, maintainability, performance, readability, and supportability. Suggest improvements and required fixes. Respond in markdown with clear recommendations.
+'''
+test_prompt = '''
+You are a testing expert. For the following PHP code changes, generate comprehensive PHPUnit tests. If tests exist, suggest improvements or missing cases. Respond with code blocks and explanations.
+'''
