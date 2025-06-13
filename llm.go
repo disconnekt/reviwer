@@ -17,7 +17,6 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
-const defaultMaxSize = 20000
 
 type FailedChunk struct {
 	Index int    `json:"index"`
@@ -75,7 +74,6 @@ func retryWithBackoff(ctx context.Context, maxRetries int, fn func() error) erro
 	}
 	return err
 }
-
 
 func NewLLMClientWithProvider(cfg *Config, apiKey string) *LLMClient {
 	if cfg.LLMProvider == "lmstudio" {
@@ -152,7 +150,11 @@ func (l *LLMClient) lmstudioChat(ctx context.Context, prompt, code, lang string)
 			lastErr = err
 			return err
 		}
-		defer resp.Body.Close()
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				log.Printf("error closing response body: %v", err)
+			}
+		}()
 		if resp.StatusCode != 200 {
 			lastErr = fmt.Errorf("lmstudio status %d", resp.StatusCode)
 			return lastErr
@@ -169,7 +171,7 @@ func (l *LLMClient) lmstudioChat(ctx context.Context, prompt, code, lang string)
 			return err
 		}
 		if len(respBody.Choices) == 0 {
-			lastErr = fmt.Errorf("No response from LLM")
+			lastErr = fmt.Errorf("no response from LLM")
 			return lastErr
 		}
 		result = respBody.Choices[0].Message.Content
@@ -232,7 +234,11 @@ func (l *LLMClient) lmstudioChatTest(ctx context.Context, prompt, code, lang str
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("error closing response body: %v", err)
+		}
+	}()
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("lmstudio status %d", resp.StatusCode)
 	}

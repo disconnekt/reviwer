@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 	"time"
-	"encoding/json"
 )
-
 func main() {
 	maxRetries := flag.Int("max-retries", 1, "Max retries for failed chunks")
 	failedChunksFile := flag.String("failed-chunks-file", "failed_chunks.json", "File to save/read failed chunk indices")
@@ -46,7 +46,9 @@ func main() {
 		}
 		var failedChunks []struct{ Index int }
 		err = json.NewDecoder(f).Decode(&failedChunks)
-		f.Close()
+		if err := f.Close(); err != nil {
+			log.Printf("error closing file: %v", err)
+		}
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to decode failed chunks file: %v\n", err)
 			os.Exit(1)
@@ -59,6 +61,7 @@ func main() {
 		for _, fc := range failedChunks {
 			if fc.Index >= 0 && fc.Index < len(allChunks) {
 				chunks = append(chunks, allChunks[fc.Index])
+
 			}
 		}
 	} // else normal mode logic below
@@ -70,7 +73,7 @@ func main() {
 		cfg.LLMModel = *llmModel
 	}
 	if cfg.LLMProvider == "lmstudio" {
-		allowed := map[string]bool{"claude-3.7-sonnet-reasoning-gemma3-12b":true, "google/gemma-3-12b":true, "openchat_3.5":true}
+		allowed := map[string]bool{"claude-3.7-sonnet-reasoning-gemma3-12b": true, "google/gemma-3-12b": true, "openchat_3.5": true}
 		if !allowed[cfg.LLMModel] {
 			fmt.Fprintf(os.Stderr, "Invalid lmstudio model: %s\n", cfg.LLMModel)
 			os.Exit(1)
@@ -224,7 +227,6 @@ func detectLangFromFilename(filename string, cfg *Config) string {
 	}
 	return ""
 }
-
 
 func keys(m map[string]LanguageConfig) []string {
 	var out []string
