@@ -145,4 +145,4 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 Pull requests and issues are welcome!
 
 ## Author
-[disconnekt](https://nalekseev.xyz)
+[Nikita Alekseev](https://nalekseev.xyz)
