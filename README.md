@@ -83,33 +83,6 @@ Download pre-built binaries from the [releases page](releases).
 | `-llm-provider` | LLM provider: openai or lmstudio (overrides config) | |
 | `-llm-model` | LLM model name (overrides config) | |
 
-## ⚙️ Configuration
-
-The tool uses a TOML configuration file (`config.toml`) with the following structure:
-
-```toml
-[llm]
-provider = "openai"  # or "lmstudio"
-model = "gpt-4o"
-
-[review]
-chunk_size = 1200
-max_retries = 3
-chunk_timeout = "5m"
-write_tests = false
-keep_tests = false
-
-[languages.go]
-extension = ".go"
-review_prompt = "You are a programming expert reviewing Go code..."
-test_prompt = "You are a testing expert. Generate unit tests..."
-
-[languages.php]
-extension = ".php"
-review_prompt = "You are a programming expert reviewing PHP code..."
-test_prompt = "You are a testing expert. Generate PHPUnit tests..."
-```
-
 ### Environment Variables
 
 - `OPENAI_API_KEY`: Required when using OpenAI provider
