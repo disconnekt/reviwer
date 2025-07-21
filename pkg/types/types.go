@@ -5,14 +5,12 @@ import (
 	"time"
 )
 
-// LanguageConfig holds configuration for a specific programming language
 type LanguageConfig struct {
 	Extension    string
 	ReviewPrompt string
 	TestPrompt   string
 }
 
-// LLMConfig holds LLM provider configuration
 type LLMConfig struct {
 	Provider string
 	Model    string
@@ -20,7 +18,6 @@ type LLMConfig struct {
 	BaseURL  string
 }
 
-// ReviewConfig holds review-specific configuration
 type ReviewConfig struct {
 	ChunkSize    int
 	MaxRetries   int
@@ -29,26 +26,24 @@ type ReviewConfig struct {
 	KeepTests    bool
 }
 
-// Config represents the main configuration structure
 type Config struct {
 	LLM       LLMConfig
 	Review    ReviewConfig
 	Languages map[string]LanguageConfig
 }
 
-// NewDefaultConfig returns a configuration with sensible defaults
 func NewDefaultConfig() *Config {
 	return &Config{
 		LLM: LLMConfig{
-			Provider: "openai",
+			Provider: "openai", // openai, lmstudio, claude, mistral, groq
 			Model:    "gpt-4",
 			BaseURL:  "http://127.0.0.1:1234/v1",
 		},
 		Review: ReviewConfig{
-			ChunkSize:    1000,
-			MaxRetries:   3, // Уменьшено для более быстрого фейла при проблемах
-			ChunkTimeout: 15 * time.Minute, // Увеличено для соответствия HTTP таймауту
-			WriteTests:   false, // Отключено по умолчанию для ускорения работы с LM Studio
+			ChunkSize:    3000,
+			MaxRetries:   3,
+			ChunkTimeout: 15 * time.Minute,
+			WriteTests:   false,
 			KeepTests:    false,
 		},
 		Languages: map[string]LanguageConfig{
@@ -66,13 +61,10 @@ func NewDefaultConfig() *Config {
 	}
 }
 
-// FailedChunk represents a chunk that failed processing
 type FailedChunk struct {
 	Index int    `json:"index"`
 	Error string `json:"error"`
 }
-
-// ReviewMode represents different review modes
 type ReviewMode string
 
 const (
@@ -82,7 +74,6 @@ const (
 	ModeReviewFile      ReviewMode = "review-file"
 )
 
-// ReviewOptions holds options for review operations
 type ReviewOptions struct {
 	Mode             ReviewMode
 	Dir              string
@@ -95,8 +86,6 @@ type ReviewOptions struct {
 	FailedChunksFile string
 	ResumeFailed     bool
 }
-
-// DiffProvider defines interface for git diff and chunking operations
 type DiffProvider interface {
 	GetUncommittedDiff(dir string) (string, error)
 	GetBranchDiff(dir, base string) (string, error)
@@ -104,20 +93,15 @@ type DiffProvider interface {
 	GetProjectChunks(dir string, chunkSize int, extensions []string) ([]string, error)
 	GetFileChunks(path string, chunkSize int) ([]string, error)
 }
-
-// LLMProvider defines interface for LLM operations
 type LLMProvider interface {
 	ReviewChunk(ctx context.Context, prompt, code, lang string) (string, error)
 	GenerateUnitTests(ctx context.Context, prompt, code, lang string) (string, error)
 	HealthCheck(ctx context.Context) error
 }
-
-// ConfigProvider defines interface for configuration operations
 type ConfigProvider interface {
 	Load(path string) (*Config, error)
 }
 
-// getGoReviewPrompt returns optimized Go code review prompt
 func getGoReviewPrompt() string {
 	return `Analyze this Go code for issues. Be concise and factual. Double-check your findings.
 
@@ -132,8 +116,6 @@ Example: Bug | line 15 | nil pointer risk | add nil check
 
 Only report actual issues. No general advice.`
 }
-
-// getGoTestPrompt returns optimized Go test generation prompt
 func getGoTestPrompt() string {
 	return `Generate Go unit tests for this code. Be precise and comprehensive.
 
@@ -146,8 +128,6 @@ Requirements:
 
 Generate only the test code. No explanations.`
 }
-
-// getPHPReviewPrompt returns optimized PHP code review prompt
 func getPHPReviewPrompt() string {
 	return `Analyze this PHP code for issues. Be concise and factual. Double-check your findings.
 
@@ -162,8 +142,6 @@ Example: Security | line 23 | SQL injection risk | use prepared statements
 
 Only report actual issues. No general advice.`
 }
-
-// getPHPTestPrompt returns optimized PHP test generation prompt
 func getPHPTestPrompt() string {
 	return `Generate PHPUnit tests for this code. Be precise and comprehensive.
 

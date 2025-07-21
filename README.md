@@ -65,6 +65,31 @@ Download pre-built binaries from the [releases page](releases).
 ./reviewer -mode=review-file -file=./main.go
 ```
 
+#### 5. Using Different LLM Providers
+
+**Claude AI:**
+```bash
+export CLAUDE_API_KEY="your-claude-api-key"
+./reviewer -mode=review-project -llm-provider=claude -llm-model="claude-3-sonnet-20240229"
+```
+
+**Mistral AI:**
+```bash
+export MISTRAL_API_KEY="your-mistral-api-key"
+./reviewer -mode=review-project -llm-provider=mistral -llm-model="mistral-large-latest"
+```
+
+**Groq:**
+```bash
+export GROQ_API_KEY="your-groq-api-key"
+./reviewer -mode=review-project -llm-provider=groq -llm-model="llama3-70b-8192"
+```
+
+**LM Studio (Local):**
+```bash
+./reviewer -mode=review-project -llm-provider=lmstudio -llm-model="your-local-model"
+```
+
 ### Command Line Options
 
 | Option | Description | Default |
@@ -80,12 +105,15 @@ Download pre-built binaries from the [releases page](releases).
 | `-chunk-timeout` | Timeout for each review chunk | `5m` |
 | `-failed-chunks-file` | File to save/read failed chunk indices | `failed_chunks.json` |
 | `-resume-failed` | Only process failed chunks from failed-chunks-file | `false` |
-| `-llm-provider` | LLM provider: openai or lmstudio (overrides config) | |
+| `-llm-provider` | LLM provider: openai, lmstudio, claude, mistral, groq | `openai` |
 | `-llm-model` | LLM model name (overrides config) | |
 
 ### Environment Variables
 
 - `OPENAI_API_KEY`: Required when using OpenAI provider
+- `CLAUDE_API_KEY`: Required when using Claude provider
+- `MISTRAL_API_KEY`: Required when using Mistral provider
+- `GROQ_API_KEY`: Required when using Groq provider
 
 ## 🏗️ Architecture
 

@@ -15,13 +15,12 @@ import (
 )
 
 func main() {
-	// Command line flags
 	var (
 		mode         = flag.String("mode", "diff-uncommitted", "Review mode: diff-uncommitted, diff-branch, review-project, review-file")
 		dir          = flag.String("dir", ".", "Directory to review")
 		file         = flag.String("file", "", "File to review (for review-file mode)")
 		base         = flag.String("base", "main", "Base branch for diff-branch mode")
-		llmProvider  = flag.String("llm-provider", "openai", "LLM provider: openai, lmstudio")
+		llmProvider  = flag.String("llm-provider", "openai", "LLM provider: openai, lmstudio, claude, mistral, groq")
 		llmModel     = flag.String("llm-model", "gpt-4", "LLM model to use")
 		llmBaseURL   = flag.String("llm-base-url", "http://127.0.0.1:1234/v1", "LLM base URL for LM Studio")
 		writeTests   = flag.Bool("write-tests", false, "Generate unit tests")
@@ -32,7 +31,6 @@ func main() {
 	)
 	flag.Parse()
 
-	// Create default config and override with command line flags
 	config := types.NewDefaultConfig()
 	config.LLM.Provider = *llmProvider
 	config.LLM.Model = *llmModel
@@ -42,16 +40,33 @@ func main() {
 	config.Review.MaxRetries = *maxRetries
 	config.Review.ChunkTimeout = *chunkTimeout
 
-	// Get API key from environment if using OpenAI
-	if config.LLM.Provider == "openai" {
+	switch config.LLM.Provider {
+	case "openai":
 		if apiKey := os.Getenv("OPENAI_API_KEY"); apiKey != "" {
 			config.LLM.APIKey = apiKey
 		} else {
 			log.Fatal("OPENAI_API_KEY environment variable is required when using OpenAI provider")
 		}
+	case "claude":
+		if apiKey := os.Getenv("CLAUDE_API_KEY"); apiKey != "" {
+			config.LLM.APIKey = apiKey
+		} else {
+			log.Fatal("CLAUDE_API_KEY environment variable is required when using Claude provider")
+		}
+	case "mistral":
+		if apiKey := os.Getenv("MISTRAL_API_KEY"); apiKey != "" {
+			config.LLM.APIKey = apiKey
+		} else {
+			log.Fatal("MISTRAL_API_KEY environment variable is required when using Mistral provider")
+		}
+	case "groq":
+		if apiKey := os.Getenv("GROQ_API_KEY"); apiKey != "" {
+			config.LLM.APIKey = apiKey
+		} else {
+			log.Fatal("GROQ_API_KEY environment variable is required when using Groq provider")
+		}
 	}
 
-	// Validate mode
 	var reviewMode types.ReviewMode
 	switch *mode {
 	case "diff-uncommitted":
@@ -66,7 +81,6 @@ func main() {
 		log.Fatalf("Invalid mode: %s. Valid modes: diff-uncommitted, diff-branch, review-project, review-file", *mode)
 	}
 
-	// Create review options
 	options := &types.ReviewOptions{
 		Mode:             reviewMode,
 		Dir:              *dir,
@@ -80,18 +94,14 @@ func main() {
 		ResumeFailed:     *resumeFailed,
 	}
 
-	// Create providers
 	diffProvider := diff.NewProvider()
 	llmClient := llm.NewClient(config.LLM)
 
-	// Create review service
 	reviewService := review.NewService(config, diffProvider, llmClient)
 
-	// Create context with cancellation
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Perform review
 	if err := reviewService.Review(ctx, options); err != nil {
 		log.Fatalf("Review failed: %v", err)
 	}
